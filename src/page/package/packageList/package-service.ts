@@ -11,6 +11,13 @@ export type PackageCheckInFormData = {
   storage_number?: string;
 }
 
+// 快递出库表单数据类型
+export type PackageCheckOutFormData = {
+  tracking_number: string;
+  picked_up_by: string;
+  notes?: string;
+}
+
 // 快递列表数据类型
 export type Package = {
   id: number;
@@ -95,13 +102,22 @@ export async function checkinPackage(data: PackageCheckInFormData): Promise<void
 }
 
 // 快递出库
-export async function checkoutPackage(): Promise<void> {
+export async function checkoutPackage(data: PackageCheckOutFormData): Promise<void> {
   try {
+    // 准备JSON数据
+    const jsonData = {
+      tracking_number: data.tracking_number,
+      picked_up_by: data.picked_up_by,
+      // 可选字段
+      ...(data.notes && { notes: data.notes })
+    };
+    
     const response = await fetch(`/api/packages/checkout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(jsonData),
     });
     
     if (!response.ok) {

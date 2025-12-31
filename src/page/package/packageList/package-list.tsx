@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Table, Button, message, Modal, Spin, Tag } from 'antd';
 import PackageForm from './package-form';
 import { getPackageList, checkinPackage, checkoutPackage } from './package-service';
-import type { PackageCheckInFormData } from './package-service';
+import type { PackageCheckInFormData, } from './package-service';
 
 interface Package {
   id: number;
