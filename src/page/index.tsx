@@ -43,7 +43,7 @@ function IndexPage() {
                             items={[
                                 { title: '首页' },
                                 { title: '快递管理' },
-                                { title: selectedKey === 'package-list' ? '快递列表' : '已取走快递列表' }
+                                { title: selectedKey === 'package-list' ? '快递列表&添加快递' : '已取走快递列表' }
                             ]} 
                         />
                         <div

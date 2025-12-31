@@ -1,19 +1,18 @@
-// 快递表单数据类型
-export interface PackageFormData {
+// 快递入库表单数据类型
+export type PackageCheckInFormData = {
   tracking_number: string;
   carrier: string;
   guest_name: string;
   room_number: string;
   guest_phone?: string;
+  received_by: string;
   notes?: string;
   storage_location?: string;
   storage_number?: string;
-  // 拍照功能预留字段
-  photo_files?: File[];
 }
 
 // 快递列表数据类型
-export interface Package {
+export type Package = {
   id: number;
   tracking_number: string;
   carrier: string;
@@ -58,31 +57,28 @@ export async function getPackageList(): Promise<Package[]> {
 }
 
 // 快递入库
-export async function checkinPackage(data: PackageFormData): Promise<void> {
+export async function checkinPackage(data: PackageCheckInFormData): Promise<void> {
   try {
-    // 准备表单数据
-    const formData = new FormData();
-    formData.append('tracking_number', data.tracking_number);
-    formData.append('carrier', data.carrier);
-    formData.append('guest_name', data.guest_name);
-    formData.append('room_number', data.room_number);
-    
-    // 可选字段
-    if (data.guest_phone) formData.append('guest_phone', data.guest_phone);
-    if (data.notes) formData.append('notes', data.notes);
-    if (data.storage_location) formData.append('storage_location', data.storage_location);
-    if (data.storage_number) formData.append('storage_number', data.storage_number);
-    
-    // 处理照片文件（拍照功能预留）
-    if (data.photo_files && data.photo_files.length > 0) {
-      data.photo_files.forEach((file, index) => {
-        formData.append(`photo_files[${index}]`, file);
-      });
-    }
+    // 准备JSON数据
+    const jsonData = {
+      tracking_number: data.tracking_number,
+      carrier: data.carrier,
+      guest_name: data.guest_name,
+      room_number: data.room_number,
+      received_by: data.received_by,
+      // 可选字段
+      ...(data.guest_phone && { guest_phone: data.guest_phone }),
+      ...(data.notes && { notes: data.notes }),
+      ...(data.storage_location && { storage_location: data.storage_location }),
+      ...(data.storage_number && { storage_number: data.storage_number })
+    };
     
     const response = await fetch('/api/packages/checkin', {
       method: 'POST',
-      body: formData,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(jsonData),
     });
     
     if (!response.ok) {
@@ -94,6 +90,29 @@ export async function checkinPackage(data: PackageFormData): Promise<void> {
     console.log('入库成功:', result);
   } catch (error) {
     console.error('快递入库失败:', error);
+    throw error;
+  }
+}
+
+// 快递出库
+export async function checkoutPackage(): Promise<void> {
+  try {
+    const response = await fetch(`/api/packages/checkout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('出库成功:', result);
+  } catch (error) {
+    console.error('快递出库失败:', error);
     throw error;
   }
 }

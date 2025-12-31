@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, Table, Button, message, Modal, Spin, Tag } from 'antd';
 import PackageForm from './package-form';
-import { getPackageList, checkinPackage, PackageFormData } from './package-service';
+import { getPackageList, checkinPackage, checkoutPackage } from './package-service';
+import type { PackageCheckInFormData } from './package-service';
 
 interface Package {
   id: number;
@@ -138,7 +139,7 @@ function PackageListPage() {
   };
 
   // 提交表单，调用入库API
-  const handleSubmit = async (formData: PackageFormData) => {
+  const handleSubmit = async (formData: PackageCheckInFormData) => {
     try {
       setFormLoading(true);
       await checkinPackage(formData);
@@ -177,6 +178,7 @@ function PackageListPage() {
       >
         手动添加
       </Button>
+      <div style={{ clear: 'both' }} />
       <Spin spinning={loading}>
         <Table 
           columns={packageColumns} 
