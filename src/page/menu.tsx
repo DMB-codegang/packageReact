@@ -8,8 +8,8 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 export const items: MenuItem[] = [
   { key: 'package', icon: <DropboxOutlined />, label: '快递管理', children: [
-    { key: 'package-list', label: '快递列表&添加快递' },
-    { key: 'package-pickyUp', label: '已取走快递列表' },
+    { key: 'package-list', label: '库中快递列表&添加快递' },
+    { key: 'package-pickyUp', label: '出库快递列表&出库快递' },
   ]}
 ];
 

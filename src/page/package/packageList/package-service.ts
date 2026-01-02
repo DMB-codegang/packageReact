@@ -132,3 +132,25 @@ export async function checkoutPackage(data: PackageCheckOutFormData): Promise<vo
     throw error;
   }
 }
+
+export async function searchPackage(tracking_number: string): Promise<Package | null> {
+  try {
+    const response = await fetch(`/api/packages/search?tracking_number=${tracking_number}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('API返回数据:', data);
+    
+    // 检查数据结构，确保是数组
+    if (data && data.data) {
+      return data.data;
+    } else {
+      console.error('API返回数据格式不正确:', data);
+      return null;
+    }
+  } catch (error) {
+    console.error('搜索快递失败:', error);
+    throw error;
+  }
+}

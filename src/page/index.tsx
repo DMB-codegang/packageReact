@@ -39,13 +39,13 @@ function IndexPage() {
                 <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* <Header style={{ padding: '0 24px', background: colorBgContainer, minHeight: 64 }}></Header> */}
                     <Content style={{ padding: '16px 24px' }}>
-                        <Breadcrumb style={{ margin: '0 0 16px 0' }} 
+                        {/* <Breadcrumb style={{ margin: '0 0 16px 0' }} 
                             items={[
                                 { title: '首页' },
                                 { title: '快递管理' },
                                 { title: selectedKey === 'package-list' ? '快递列表&添加快递' : '已取走快递列表' }
                             ]} 
-                        />
+                        /> */}
                         <div
                             style={{
                                 padding: 24,
