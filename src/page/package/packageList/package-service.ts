@@ -133,9 +133,29 @@ export async function checkoutPackage(data: PackageCheckOutFormData): Promise<vo
   }
 }
 
-export async function searchPackage(tracking_number: string): Promise<Package | null> {
+export async function searchPackage(searchParams: {
+  tracking_number?: string;
+  carrier?: string;
+  guest_name?: string;
+  room_number?: string;
+  guest_phone?: string;
+  status?: string;
+  received_by?: string;
+  picked_up_by?: string;
+}): Promise<Package[]> {
   try {
-    const response = await fetch(`/api/packages/search?tracking_number=${tracking_number}`);
+    // 构建查询参数
+    const queryParams = new URLSearchParams();
+    if (searchParams.tracking_number) queryParams.append('tracking_number', searchParams.tracking_number);
+    if (searchParams.carrier) queryParams.append('carrier', searchParams.carrier);
+    if (searchParams.guest_name) queryParams.append('guest_name', searchParams.guest_name);
+    if (searchParams.room_number) queryParams.append('room_number', searchParams.room_number);
+    if (searchParams.guest_phone) queryParams.append('guest_phone', searchParams.guest_phone);
+    if (searchParams.status) queryParams.append('status', searchParams.status);
+    if (searchParams.received_by) queryParams.append('received_by', searchParams.received_by);
+    if (searchParams.picked_up_by) queryParams.append('picked_up_by', searchParams.picked_up_by);
+    
+    const response = await fetch(`/api/packages/search?${queryParams.toString()}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -147,7 +167,7 @@ export async function searchPackage(tracking_number: string): Promise<Package | 
       return data.data;
     } else {
       console.error('API返回数据格式不正确:', data);
-      return null;
+      return [];
     }
   } catch (error) {
     console.error('搜索快递失败:', error);

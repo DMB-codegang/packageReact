@@ -2,7 +2,7 @@ import { useState } from 'react';
 import MenuComponent from './menu'
 import { Breadcrumb, Layout, theme } from 'antd';
 import PackageListPage from './package/packageList/package-list';
-import PackagePickyUpPage from './package-pickyUp';
+import PackagePickyUpPage from './package/packagePickyUp';
 const { Content, Sider } = Layout;
 import type { MenuProps } from 'antd';
 
