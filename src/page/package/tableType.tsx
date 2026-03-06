@@ -1,5 +1,25 @@
 import { Tag } from 'antd';
 
+
+/**
+ * @description 包裹数据类型定义
+ * @param {number} id 包裹ID
+ * @param {string} tracking_number 快递单号
+ * @param {string} carrier 快递公司
+ * @param {string} guest_name 收件人姓名
+ * @param {string} room_number 房间号
+ * @param {string} guest_phone 收件人手机号
+ * @param {string} status 包裹状态
+ * @param {string} receive_time 接收时间
+ * @param {string} pickup_time 取件时间
+ * @param {string} received_by 接收人
+ * @param {string} picked_up_by 取件人
+ * @param {string} storage_location 存储位置
+ * @param {string} storage_number 存储号
+ * @param {string} notes 备注
+ * @param {string} created_at 创建时间
+ * @param {string} updated_at 更新时间
+ */
 export interface Package {
   id: number;
   tracking_number: string;

@@ -2,7 +2,21 @@ import React from 'react';
 import { Card, Table } from 'antd';
 import type { ColumnType } from 'antd/es/table';
 
-// 导入idb.tsx中定义的数据结构类型
+/**
+ * @description 取件包裹数据类型定义
+ * @param {string} key 包裹数据唯一标识
+ * @param {number} id? 包裹ID
+ * @param {string} recipientName 收件人姓名
+ * @param {number} roomNo 房间号
+ * @param {string} phoneNumberEnding 收件人手机号后四位
+ * @param {string} companyName 快递公司
+ * @param {string} packageReferenceNo 快递单号
+ * @param {number} pieces 件数
+ * @param {string} receivedBy 接收人
+ * @param {Date} arrivalTime 入库时间
+ * @param {Date} pickyUpTime? 取件时间
+ * @param {'arrival' | 'pickup'} status 包裹状态
+ */
 interface PackageData {
   key: string;
   id?: number;

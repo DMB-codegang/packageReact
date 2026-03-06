@@ -1,4 +1,17 @@
 // 快递入库表单数据类型
+
+/**
+ * @description 快递入库表单数据类型
+ * @param {string} tracking_number 快递单号
+ * @param {string} carrier 快递公司
+ * @param {string} guest_name 收件人姓名
+ * @param {string} room_number 房间号
+ * @param {string} guest_phone? 收件人手机号
+ * @param {string} received_by 接收人
+ * @param {string} notes? 备注
+ * @param {string} storage_location? 存储位置
+ * @param {string} storage_number? 存储号
+ */
 export type PackageCheckInFormData = {
   tracking_number: string;
   carrier: string;
@@ -11,14 +24,37 @@ export type PackageCheckInFormData = {
   storage_number?: string;
 }
 
-// 快递出库表单数据类型
+/**
+ * @description 快递出库表单数据类型
+ * @param {string} tracking_number 快递单号
+ * @param {string} picked_up_by 接收人
+ * @param {string} notes? 备注
+ */
 export type PackageCheckOutFormData = {
   tracking_number: string;
   picked_up_by: string;
   notes?: string;
 }
 
-// 快递列表数据类型
+/**
+ * @description 快递列表数据类型
+ * @param {number} id 快递ID
+ * @param {string} tracking_number 快递单号
+ * @param {string} carrier 快递公司
+ * @param {string} guest_name 收件人姓名
+ * @param {string} room_number 房间号
+ * @param {string | null} guest_phone 收件人手机号
+ * @param {string} status 状态
+ * @param {string} receive_time 接收时间
+ * @param {string | null} pickup_time 取件时间
+ * @param {string} received_by 接收人
+ * @param {string | null} picked_up_by 取件人
+ * @param {string | null} storage_location 存储位置
+ * @param {string | null} storage_number 存储号
+ * @param {string | null} notes 备注
+ * @param {string} created_at 创建时间
+ * @param {string} updated_at 更新时间
+ */
 export type Package = {
   id: number;
   tracking_number: string;
@@ -38,7 +74,10 @@ export type Package = {
   updated_at: string;
 }
 
-// 获取快递列表
+/**
+ * @description 获取快递列表
+ * @returns {Promise<Package[]>} 快递列表数据
+ */
 export async function getPackageList(): Promise<Package[]> {
   try {
     const response = await fetch('/api/packages/getlist');
@@ -63,7 +102,11 @@ export async function getPackageList(): Promise<Package[]> {
   }
 }
 
-// 快递入库
+/**
+ * @description 快递入库
+ * @param {PackageCheckInFormData} data 快递入库表单数据
+ * @returns {Promise<void>} 无返回值
+ */
 export async function checkinPackage(data: PackageCheckInFormData): Promise<void> {
   try {
     // 准备JSON数据
@@ -101,7 +144,11 @@ export async function checkinPackage(data: PackageCheckInFormData): Promise<void
   }
 }
 
-// 快递出库
+/**
+ * @description 快递出库
+ * @param {PackageCheckOutFormData} data 快递出库表单数据
+ * @returns {Promise<void>} 无返回值
+ */
 export async function checkoutPackage(data: PackageCheckOutFormData): Promise<void> {
   try {
     // 准备JSON数据
@@ -133,6 +180,19 @@ export async function checkoutPackage(data: PackageCheckOutFormData): Promise<vo
   }
 }
 
+/**
+ * @description 搜索快递
+ * @param {Object} searchParams 搜索参数对象
+ * @param {string} [searchParams.tracking_number] 快递单号
+ * @param {string} [searchParams.carrier] 快递公司
+ * @param {string} [searchParams.guest_name] 客人姓名
+ * @param {string} [searchParams.room_number] 房间号
+ * @param {string} [searchParams.guest_phone] 客人手机号
+ * @param {string} [searchParams.status] 状态
+ * @param {string} [searchParams.received_by] 收件人
+ * @param {string} [searchParams.picked_up_by] 取件人
+ * @returns {Promise<Package[]>} 搜索结果数组
+ */
 export async function searchPackage(searchParams: {
   tracking_number?: string;
   carrier?: string;

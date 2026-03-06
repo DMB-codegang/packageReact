@@ -2,7 +2,19 @@ import { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Space } from 'antd';
 import pinyin from 'pinyin';
 
-// 表单数据类型定义
+/**
+ * @description 包裹表单数据类型定义
+ * @param {string} tracking_number 快递单号
+ * @param {string} carrier 快递公司
+ * @param {string} guest_name 收件人姓名
+ * @param {string} room_number 房间号
+ * @param {string} guest_phone 收件人手机号
+ * @param {string} received_by 接收人
+ * @param {string} notes 备注
+ * @param {string} storage_location 存储位置
+ * @param {string} storage_number 存储号
+ * @param {File[]} photo_files 照片文件数组
+ */
 interface PackageFormData {
   tracking_number: string;
   carrier: string;
@@ -34,11 +46,19 @@ interface PackageFormProps {
   onSubmit: (data: PackageFormData) => Promise<void>;
   onCancel: () => void;
   loading: boolean;
+  initialValues?: Partial<PackageFormData>;
 }
 
-const PackageForm = ({ onSubmit, onCancel, loading }: PackageFormProps) => {
+const PackageForm = ({ onSubmit, onCancel, loading, initialValues }: PackageFormProps) => {
   const [form] = Form.useForm<PackageFormData>();
   const [receivedByOptions, setReceivedByOptions] = useState<{ value: string; label: string }[]>([]);
+  
+  // 当initialValues变化时，更新表单值
+  useEffect(() => {
+    if (initialValues) {
+      form.setFieldsValue(initialValues);
+    }
+  }, [initialValues, form]);
 
   // 从localStorage加载保存的接收人列表
   useEffect(() => {
@@ -46,7 +66,20 @@ const PackageForm = ({ onSubmit, onCancel, loading }: PackageFormProps) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setReceivedByOptions(parsed);
+        // 清理可能存在的空白tag
+        const cleanedOptions = parsed.filter((option: { value: string; label: string }) => {
+          return option.value && 
+                 typeof option.value === 'string' && 
+                 option.value.trim().length > 0 &&
+                 !/^\s+$/.test(option.value);
+        });
+        
+        // 如果有清理过的数据，更新localStorage
+        if (cleanedOptions.length !== parsed.length) {
+          localStorage.setItem('receivedByList', JSON.stringify(cleanedOptions));
+        }
+        
+        setReceivedByOptions(cleanedOptions);
       } catch (e) {
         console.error('解析接收人列表失败:', e);
       }
@@ -55,9 +88,15 @@ const PackageForm = ({ onSubmit, onCancel, loading }: PackageFormProps) => {
 
   // 保存接收人到localStorage
   const saveReceivedBy = (name: string) => {
+    // 检查输入是否有效
+    if (!name || typeof name !== 'string') return;
+    
     // 去除空白并检查是否为空
-    const trimmedName = name?.trim();
-    if (!trimmedName) return;
+    const trimmedName = name.trim();
+    if (trimmedName.length === 0) return;
+    
+    // 检查是否只包含空白字符
+    if (/^\s+$/.test(name)) return;
     
     // 检查是否已存在（不区分大小写）
     if (!receivedByOptions.some(option => option.value.toLowerCase() === trimmedName.toLowerCase())) {
@@ -68,8 +107,19 @@ const PackageForm = ({ onSubmit, onCancel, loading }: PackageFormProps) => {
   };
 
   // 处理接收人选择变化
-  const handleReceivedByChange = (value: string) => {
-    saveReceivedBy(value);
+  const handleReceivedByChange = (value: string | string[]) => {
+    // 处理tags模式下的多值输入
+    if (Array.isArray(value)) {
+      // 过滤掉空白值
+      const filteredValues = value.filter(v => v && v.trim().length > 0);
+      // 只保存最后一个非空值（通常是最新输入的）
+      if (filteredValues.length > 0) {
+        saveReceivedBy(filteredValues[filteredValues.length - 1]);
+      }
+    } else {
+      // 单值模式
+      saveReceivedBy(value);
+    }
   };
 
   // 处理表单提交
