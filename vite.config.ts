@@ -24,5 +24,8 @@ export default defineConfig({
     }
   },
   // 确保WASM文件被正确处理
-  assetsInclude: ['**/*.wasm']
+  assetsInclude: ['**/*.wasm'],
+  build: {
+    assetsInlineLimit: 0 // 不要内联WASM文件，保持为独立文件
+  }
 })

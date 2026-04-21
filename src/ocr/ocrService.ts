@@ -1,5 +1,4 @@
 import Ocr from '@gutenye/ocr-browser'
-
 import type { PackageCheckInFormData } from "../page/package/packageList/package-service";
 
 /**
@@ -11,7 +10,7 @@ type Point = [number, number];
 type BoundingBox = [Point, Point, Point, Point];
 
 /**
- * @param {BoundingBox} bounding_box OCR的边界框
+ * @param {BoundingBox} bounding_box OCR 的边界框
  * @param {number} confidence 置信度
  * @param {string} text 识别文本
  */
@@ -22,6 +21,11 @@ export interface RecognitionItem {
 }
 
 /**
+ * @description OCR 识别数据，包含文本边界、置信度、识别文本的数组
+ */
+export type RecognitionData = RecognitionItem[];
+
+/**
  * @description OCR 识别结果，包含原始识别数据和提取的快递信息
  */
 export interface OcrResults {
@@ -30,51 +34,42 @@ export interface OcrResults {
 }
 
 /**
- * @description OCR识别数据,包含文本边界,置信度,识别文本的数组
+ * @description OCR 识别图片中的文本
+ * @param {File} image File 对象
+ * @returns {Promise<RecognitionData>} OCR 识别数据
  */
-export type RecognitionData = RecognitionItem[];
-
-/**
- * @description OCR识别结果，包含原始识别数据和提取的快递信息
- */
-export interface OcrResults {
-  rawResults: RecognitionData;
-  extractedInfo: PackageCheckInFormData | null;
-}
-
-
-/**
- * @description OCR识别图片中的文本
- * @param {string} image 图片base64编码
- * @returns {Promise<RecognitionData>} OCR识别数据
- */
-export async function ocr(image: string): Promise<RecognitionData> {
-  const api = '/ocr'
-  const response = await fetch(api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      image: image
-    })
+export async function ocr(image: File): Promise<RecognitionData> {
+  const ocrInstance = await Ocr.create({
+    models: {
+      detectionPath: '/models/det.onnx',
+      recognitionPath: '/models/rec.onnx',
+      dictionaryPath: '/models/ocr_keys_v1.txt'
+    }
   })
 
-  const data = await response.json() as RecognitionData
-  console.log(data)
+  // 创建 blob URL 供 OCR 使用
+  const imageUrl = URL.createObjectURL(image);
 
-  // 确保返回的是字符串数组
-  if (Array.isArray(data)) {
-    return data
-  } else {
-    throw new Error('返回的数据格式不正确')
+  try {
+    // detect 方法接收字符串路径（URL）并返回 Line[]
+    const detectResult = await ocrInstance.detect(imageUrl);
+
+    // Line[] 转换为 RecognitionItem[]
+    return detectResult.map((line) => ({
+      bounding_box: line.box as BoundingBox,
+      confidence: line.mean,
+      text: line.text
+    }));
+  } finally {
+    // 释放 blob URL
+    URL.revokeObjectURL(imageUrl);
   }
 }
 
 /**
- * @description 从OCR识别数据中提取快递信息
- * @param {RecognitionData} ocrResults OCR识别数据
- * @returns {PackageCheckInFormData | null} 提取的快递信息或null
+ * @description 从 OCR 识别数据中提取快递信息
+ * @param {RecognitionData} ocrResults OCR 识别数据
+ * @returns {PackageCheckInFormData | null} 提取的快递信息或 null
  */
 export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInFormData | null {
   let formData: PackageCheckInFormData = {
@@ -93,7 +88,7 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
 
   // 1. 提取快递公司
   const carrierPatterns = [
-    { pattern: /顺丰|SF|sf/i, carrier: '顺丰' },
+    { pattern: /顺丰 |SF|sf/i, carrier: '顺丰' },
     { pattern: /京东|JD|jd/i, carrier: '京东' },
     { pattern: /圆通|YT|yt/i, carrier: '圆通' },
     { pattern: /中通|ZT|zt/i, carrier: '中通' },
@@ -107,8 +102,8 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
     { pattern: /优速|YS|ys/i, carrier: '优速' }
   ];
   // 识别快递公司：遍历预定义的快递公司模式
-  // 使用正则表达式匹配OCR文本中的快递公司标识
-  // 一旦匹配成功，就设置formData.carrier并跳出循环
+  // 使用正则表达式匹配 OCR 文本中的快递公司标识
+  // 一旦匹配成功，就设置 formData.carrier 并跳出循环
   for (const carrierInfo of carrierPatterns) {
     if (carrierInfo.pattern.test(allText)) {
       formData.carrier = carrierInfo.carrier;
@@ -118,7 +113,7 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
     }
   }
 
-  // 2. 提取快递单号 (通常为10-15位数字或字母数字组合)
+  // 2. 提取快递单号 (通常为 10-15 位数字或字母数字组合)
   // 常见快递单号模式
 
   let trackingPatterns: RegExp[] = [];
@@ -140,8 +135,8 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
       break;
     default:
       trackingPatterns = [
-        /\b\d{10,15}\b/g,  // 10-15位纯数字
-        /\b[A-Za-z0-9]{10,15}\b/g,  // 10-15位字母数字组合
+        /\b\d{10,15}\b/g,  // 10-15 位纯数字
+        /\b[A-Za-z0-9]{10,15}\b/g,  // 10-15 位字母数字组合
       ];
       break;
   }
@@ -201,7 +196,7 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
     // 遍历文本数组，查找包含手机号且前后有姓名特征的合并字符串
     for (let i = 0; i < filteredTextArray.length; i++) {
       const str = filteredTextArray[i];
-      // 精确匹配中国大陆手机号（11位，13-19开头）
+      // 精确匹配中国大陆手机号（11 位，13-19 开头）
       const phoneMatch = str.match(/(1[3-9]\d{9})/);
 
       if (phoneMatch) {
@@ -249,6 +244,6 @@ export function extractPackageInfo(ocrResults: RecognitionData): PackageCheckInF
     return formData;
   }
 
-  // 如果未找到匹配项，返回null
+  // 如果未找到匹配项，返回 null
   return null;
 }
